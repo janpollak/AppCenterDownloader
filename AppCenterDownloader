@@ -1,0 +1,62 @@
+#Add your App Center token
+token=$""
+
+user=$(id -un)
+
+#Pick your download directory.
+downloadDirectory=$"/Users/$user/Desktop"
+
+#Add apps
+searchedApps=(
+#app1
+#app2
+#app3
+)
+
+user=$(id -un)
+appData=$(curl -X GET "https://api.appcenter.ms/v0.1/apps" -H "accept: application/json" -H "X-API-Token: $token" --silent)
+
+getLatestRelease () {
+  releaseData=$(curl -X GET "https://api.appcenter.ms/v0.1/apps/Futured/$1/releases/latest" -H "accept: application/json" -H "X-API-Token: $token" --silent)
+  downloadUrl=$(jq -r '.download_url' <<< "${releaseData}")
+  os=$(jq -r '.app_os' <<< "${releaseData}")
+
+  if [ "$os" == "iOS" ]
+  then
+    fileEnding=$"ipa"
+  else
+    fileEnding=$"apk"
+  fi
+
+  releaseNotes=$(jq -r '.release_notes' <<< "${releaseData}")
+  displayName=$(jq -r '.app_display_name' <<< "${releaseData}")
+  size=$(jq -r '.size' <<< "${releaseData}")
+
+  oldRelease=$"$downloadDirectory/$1.$fileEnding"
+
+  oldSize=$(stat -f%z $oldRelease)
+
+  if [ "$oldSize" == "$size" ]
+  then
+    echo "$displayName – Current build is up to date"
+  else
+    echo "$displayName – New build available"
+    rm $oldRelease
+    downloadRelease $downloadUrl $1 $fileEnding
+  fi
+}
+
+downloadRelease () {
+  echo "Downloading $displayName"
+  curl $1 --output $downloadDirectory/$2.$3 --silent
+  showNotification "$releaseNotes" "$os" "$displayName"
+}
+
+showNotification () {
+  osascript -e 'display notification "'"$1"'" with title "'"$2 – ""$3"' is downloaded"'
+}
+
+for app in ${searchedApps[*]}
+do
+  getLatestRelease $app
+done
