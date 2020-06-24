@@ -1,5 +1,5 @@
 #Add your App Center token
-token=$""
+token=""
 
 user=$(id -un)
 
@@ -8,16 +8,16 @@ downloadDirectory=$"/Users/$user/Desktop"
 
 #Add apps
 searchedApps=(
-#app1
-#app2
-#app3
+#Sample app format: organisation-name/app-name
 )
 
 user=$(id -un)
 appData=$(curl -X GET "https://api.appcenter.ms/v0.1/apps" -H "accept: application/json" -H "X-API-Token: $token" --silent)
 
 getLatestRelease () {
-  releaseData=$(curl -X GET "https://api.appcenter.ms/v0.1/apps/Futured/$1/releases/latest" -H "accept: application/json" -H "X-API-Token: $token" --silent)
+  appName=$(cut -d "/" -f2 <<< "$1")
+
+  releaseData=$(curl -X GET "https://api.appcenter.ms/v0.1/apps/$1/releases/latest" -H "accept: application/json" -H "X-API-Token: $token" --silent)
   downloadUrl=$(jq -r '.download_url' <<< "${releaseData}")
   os=$(jq -r '.app_os' <<< "${releaseData}")
 
@@ -32,17 +32,19 @@ getLatestRelease () {
   displayName=$(jq -r '.app_display_name' <<< "${releaseData}")
   size=$(jq -r '.size' <<< "${releaseData}")
 
-  oldRelease=$"$downloadDirectory/$1.$fileEnding"
+  oldRelease=$"$downloadDirectory/$appName.$fileEnding"
 
-  oldSize=$(stat -f%z $oldRelease)
+  if [ -f "$oldRelease" ]; then
+    oldSize=$(stat -f%z $oldRelease)
+  fi
 
   if [ "$oldSize" == "$size" ]
   then
     echo "$displayName – Current build is up to date"
   else
     echo "$displayName – New build available"
-    rm $oldRelease
-    downloadRelease $downloadUrl $1 $fileEnding
+    rm -f $oldRelease
+    downloadRelease $downloadUrl $appName $fileEnding
   fi
 }
 
