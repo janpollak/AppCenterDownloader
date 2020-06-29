@@ -1,4 +1,4 @@
-#Add your App Center token
+#Add your App Center token.
 token=""
 
 user=$(id -un)
@@ -6,9 +6,11 @@ user=$(id -un)
 #Pick your download directory.
 downloadDirectory=$"/Users/$user/Desktop"
 
-#Add apps
+#Add apps.
 searchedApps=(
-#Sample app format: organisation-name/app-name
+#Sample app 1 format: organization-name/app-name
+#Sample app 2 format: organization-name/app-name
+#Sample app 3 format: organization-name/app-name
 )
 
 user=$(id -un)
