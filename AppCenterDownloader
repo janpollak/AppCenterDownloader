@@ -3,7 +3,7 @@ token=""
 
 user=$(id -un)
 
-#Pick your download directory.
+#Pick your download directory. It is set to Desktop by default.
 downloadDirectory=$"/Users/$user/Desktop"
 
 #Add apps.
